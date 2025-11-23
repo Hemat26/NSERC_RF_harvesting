@@ -633,16 +633,22 @@ class RF_harvesting_metrics:
 def calculate_slope(x1, y1, x2, y2):
     return (y2 - y1)/(x2 - x1)
 
-#Calculating Power Recieved
+
+H_eff_cutoff = 0.0000251189 #(-16dBm converted to Watts)
+H_pwr_cutoff = 0.001
+
+#Calculating Harvesting Power from input RSS 
 def DC_power_recieved(input_power):
+    #Input power is given in watts
     psig = 1 + np.exp(-a * psens + b)
     psig /= 1 + np.exp(-a*input_power + b)
     psig -= 1
     psig *= psat/np.exp(-a * psens + b) 
 
+    #Use the original input for the boundries (min + max saturation)
     result = np.where(input_power<psens, 0, psig)
-    result = np.where(input_power > 0.0000251189, input_power * 0.4, result) #efficiency cutoff at 16 dbm
-    result = np.where(input_power > 0.001, 0.001 * 0.4, result) #power cutoff at 0 dbm
+    result = np.where(input_power > H_eff_cutoff, input_power * 0.4, result) 
+    result = np.where(input_power > H_pwr_cutoff, H_pwr_cutoff * 0.4, result) 
 
     return result
 
